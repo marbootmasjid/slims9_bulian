@@ -23,11 +23,14 @@ sysconfig.inc.php
 slims8_akasia.sublime-project
 slims8_akasia.sublime-workspace
 .env
+.superpowers/
 
 plugins/*
 !plugins/read_counter/
+!plugins/stie_pemuda_*/
 
 template/*
+!template/stie_pemuda/
 
 # Windows image file caches
 Thumbs.db
