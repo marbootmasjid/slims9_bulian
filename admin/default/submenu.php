@@ -18,6 +18,10 @@
  *
  */
 
+$menu[] = array('Header', __('MENU'));
+$menu['daftar_pengunjung'] = array(__('Daftar Pengunjung'), SWB . 'index.php?p=visitor" target="_blank" rel="noopener', __('Daftar Pengunjung'));
+$menu['pendaftaran_mandiri'] = array(__('Pendaftaran Mandiri'), SWB . 'index.php?p=pendaftaran" target="_blank" rel="noopener', __('Pendaftaran Mandiri'));
+
 $menu[] = array('Header', __('SHORTCUT'));
 $menu['user-profile'] = array(__('Change User Profiles'), MWB.'system/app_user.php?changecurrent=true&action=detail', __('Change Current User Profiles and Password'));
 $menu[] = array(__('Shortcut Setting'), MWB.'system/shortcut.php', __('Shortcut Setting'));

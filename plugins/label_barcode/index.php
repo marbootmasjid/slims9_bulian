@@ -196,7 +196,7 @@ if (isset($_GET['action']) AND $_GET['action'] == 'print') {
             $html_str .= '<div style="padding:0 1rem;font-size:10pt;text-align:center;position:absolute;top:-1px;left:0;right:0;z-index:1;background:white;text-overflow: ellipsis;white-space: nowrap;overflow: hidden;line-height:1.25">'.$labels[2].'</div>';
             $html_str .= '<img class="img-fluid" src="' . SWB . IMG . '/barcodes/' . urlencode(urlencode($barcode_text)) . '.png?' . date('YmdHis') . '" border="0" />';
             $html_str .= '</div>';
-            $html_str .= '<div>';
+            $html_str .= '<div class="text-center">';
             if ($sysconf['print']['label']['include_header_text']) {
                 $html_str .= '<div class="labelHeaderStyle">' . ($sysconf['print']['label']['header_text'] ? $sysconf['print']['label']['header_text'] : $sysconf['library_name']) . '</div>';
             }
