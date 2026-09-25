@@ -53,49 +53,58 @@ Modify `.gitignore` to track STIE Pemuda customized components while keeping cor
 
 ## 4. CI/CD Deployment Pipeline (GitHub Actions)
 
-### 4.1 Workflow Definition (`.github/workflows/deploy.yml`)
+### 4.1 Production VPS Architecture Details
+* **Host**: `vps-pemuda` (`library.stiepemuda.ac.id`)
+* **User**: `itadmin`
+* **Docker Compose Directory**: `/home/itadmin/apps/library-pemuda`
+* **SLiMS Live Repository Directory**: `/home/itadmin/apps/library-pemuda/data/files`
+* **Web Container**: `library-web` (port `127.0.0.1:8082`, live volume `./data/files/:/var/www/html`)
+* **Database Container**: `library-db` (MariaDB 10.6, persistent in `./data/db`)
+* **Remote Git**: `origin` -> `git@github.com:marbootmasjid/slims9_bulian.git`
+
+### 4.2 Workflow Definition (`.github/workflows/deploy.yml`)
 * **Trigger**: `push` to branch `production`.
 * **Runner**: `ubuntu-latest`.
-* **Action**: `appleboy/ssh-action` connecting to the production VPS.
-* **Deployment Execution**:
+* **Action**: `appleboy/ssh-action` connecting to `vps-pemuda`.
+* **Deployment Execution (Near-Zero Downtime, ~3 seconds)**:
   ```bash
-  cd ${{ secrets.VPS_PROJECT_DIR }}
+  cd /home/itadmin/apps/library-pemuda/data/files
+  git config core.filemode false
   git fetch origin production
   git reset --hard origin/production
-  docker compose up -d --build slims
+  rm -rf install/
+  docker restart library-web
   ```
+  *(Karena folder `./data/files/` ter-mount live ke kontainer `library-web`, pembaruan kode langsung aktif seketika setelah `git reset --hard` dan restart ringan kontainer tanpa perlu rebuild image lama).*
 
-### 4.2 Required GitHub Secrets
-1. `VPS_HOST`: IP or domain of the VPS (`library.stiepemuda.ac.id`).
-2. `VPS_PORT`: SSH port (default: `22`).
-3. `VPS_USERNAME`: SSH username with permissions to manage Docker.
-4. `VPS_SSH_KEY`: SSH private key.
-5. `VPS_PROJECT_DIR`: Absolute path to the repository directory on the VPS.
+### 4.3 Required GitHub Secrets
+1. `VPS_HOST`: IP atau domain VPS (`library.stiepemuda.ac.id`).
+2. `VPS_PORT`: SSH port (default `22`).
+3. `VPS_USERNAME`: `itadmin`
+4. `VPS_SSH_KEY`: SSH Private Key milik user `itadmin`.
+5. `VPS_PROJECT_DIR`: `/home/itadmin/apps/library-pemuda/data/files`
 
 ---
 
 ## 5. Persistence & Safety Verification
 
 ### 5.1 Volume Integrity
-Docker volumes defined in `docker-compose.yml` safeguard user data:
-* `dbdata`: MariaDB data directory (`/var/lib/mysql`).
-* `appfiles`: Uploaded files and attachments (`/var/www/html/files`).
-* `appimages`: Uploaded book covers and member photos (`/var/www/html/images`).
-* `apprepo`: Repository documents (`/var/www/html/repository`).
-Rebuilding the `slims` container does not touch or reset any of these volumes.
+* Database MariaDB persisten di host path: `/home/itadmin/apps/library-pemuda/data/db`.
+* Webroot & asset persisten di host path: `/home/itadmin/apps/library-pemuda/data/files`.
+* Deploy via `git reset --hard origin/production` tidak akan menghapus file yang di-ignore (`config/database.php`, `config/env.php`, folder `files/*`, `images/persons/*`, `images/docs/*`, `repository/*`).
 
 ### 5.2 Rollback Plan
-If any breaking bug is introduced in `production`:
-1. `git revert <commit-hash>` locally.
-2. `git push origin production`.
-3. GitHub Actions automatically rebuilds the container with the stable code.
+Jika terjadi kesalahan pada rilis `production`:
+1. Lakukan `git revert <commit-hash>` pada branch `production`.
+2. Push ke GitHub (`git push origin production`).
+3. GitHub Actions otomatis mengembalikan kode stabil di VPS dalam 3 detik.
 
 ---
 
 ## 6. Implementation Checklist
-1. **Branch Setup**: Create and checkout `custom-pemuda` and `production` branches.
-2. **Gitignore Calibration**: Update `.gitignore` for `template/stie_pemuda/` and custom plugins.
-3. **Template Scaffold**: Duplicate `template/default` into `template/stie_pemuda` and configure metadata.
-4. **Revert Core Edits**: Restore `plugins/label_barcode/index.php` to clean state.
-5. **Workflow Creation**: Implement `.github/workflows/deploy.yml`.
-6. **Documentation**: Provide clear guide for adding the 5 GitHub Secrets and setting up the VPS git remote.
+1. **Branch Setup**: Buat dan switch ke branch `custom-pemuda` dan branch `production`.
+2. **Gitignore Calibration**: Update `.gitignore` agar mengizinkan tracking `!template/stie_pemuda/` dan `!plugins/stie_pemuda_*/`.
+3. **Template Scaffold**: Salin `template/default` menjadi `template/stie_pemuda` dengan metadata tema STIE Pemuda.
+4. **Revert Core Edits**: Bersihkan hardcode di `plugins/label_barcode/index.php`.
+5. **Workflow Creation**: Buat skrip `.github/workflows/deploy.yml` sesuai arsitektur VPS.
+6. **Documentation**: Panduan langkah penambahan SSH Key ke GitHub Secrets dan testing deploy pertama kali.
