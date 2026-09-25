@@ -36,6 +36,8 @@ services:
     environment:
       - MARIADB_ROOT_PASSWORD=${DB_PASS}
       - MARIADB_DATABASE=${DB_NAME}
+      - MARIADB_USER=${DB_USER}
+      - MARIADB_PASSWORD=${DB_PASS}
     networks:
       - proxy
 

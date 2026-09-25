@@ -25,7 +25,7 @@ RUN chown -R www-data:www-data /var/www/html/repository
 RUN rm -rf /var/www/html/install
 
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 EXPOSE 80
 
