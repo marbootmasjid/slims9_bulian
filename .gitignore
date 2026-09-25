@@ -24,6 +24,7 @@ slims8_akasia.sublime-project
 slims8_akasia.sublime-workspace
 .env
 .superpowers/
+docker-compose.override.yml
 
 plugins/*
 !plugins/read_counter/
